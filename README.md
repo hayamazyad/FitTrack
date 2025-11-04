@@ -14,13 +14,12 @@
 This repository contains the **frontend** of our Fitness Tracker web application.  
 It allows users to explore exercises, track their workouts, and monitor progress through a clean and responsive interface.
 
-You can preview our application in action here:  
-![App Demo](GIF.gif)
+You can preview our application in action in the GIF file.
 
 ---
 
 ## Live Demo
-**Link to the deployed application:** https://my-project-pearl-phi-27.vercel.app/
+**Link to the deployed application:** https://fit-track-one-weld.vercel.app/
 
 ---
 

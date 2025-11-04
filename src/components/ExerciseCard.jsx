@@ -1,3 +1,5 @@
+//Lynn
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 
@@ -77,3 +79,4 @@ export const ExerciseCard = ({ exercise, onClick }) => {
     </Card>
   );
 };
+

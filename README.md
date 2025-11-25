@@ -258,39 +258,27 @@ Each member was responsible for specific implementation as follows:
 
 ### Rama Alassi
 
-* controllers:
-  AuthController & DefaultExerciseController
-* model:
-  User & DefaultExercise
-* routes:
-  AuthRoute & DefaultExerciseRoute
+* Controllers: AuthController & DefaultExerciseController
+* Model: User & DefaultExercise
+* Routes: AuthRoute & DefaultExerciseRoute
 
 ### Haya Mazyad
 
-* controllers:
-  workoutController & DefaultWorkoutController
-* model:
-  Workout & DefaultWorkout
-* routes:
-  workRoute & DefaultWorkoutRoute
+* Controllers: WorkoutController & DefaultWorkoutController
+* Model: Workout & DefaultWorkout
+* Routes: WorkRoute & DefaultWorkoutRoute
 
 ### Lynn Oueidat
 
-* controllers:
-  ExerciseController
-* model:
-  Exercise
-* routes:
-  ExerciseRoute
+* Controllers: ExerciseController
+* Model: Exercise
+* Routes: ExerciseRoute
 
 ### Nour Saad
 
-* controllers:
-  progressLogController
-* model:
-  ProgressLog
-* routes:
-  ProgressLogRoute
+* Controllers: ProgressLogController
+* Model: ProgressLog
+* Routes: ProgressLogRoute
 
 ---
 

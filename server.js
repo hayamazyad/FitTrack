@@ -90,6 +90,11 @@ app.use('/api/progress', require('./routes/progressRoutes'));
  *                   type: string
  *                   example: Server is running
  */
+
+app.get('/', (req, res) => {
+  res.send('FitTrack API is running 🚀');
+});
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,

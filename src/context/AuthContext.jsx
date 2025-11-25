@@ -50,17 +50,35 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login(email, password);
       if (response.success && response.data) {
+        const userData = response.data.user;
+        
+        // Validate that user data and name exist
+        if (!userData || !userData.name) {
+          console.error('Login response missing user data or name:', response);
+          throw new Error('Invalid response from server - user data missing');
+        }
+
         localStorage.setItem('auth_token', response.data.token);
-        setUser(response.data.user);
+        setUser(userData);
         setIsAuthenticated(true);
-        toast.success(`Welcome back, ${response.data.user.name}!`);
-        return { success: true };
+        
+        // Show toast with user's name - guaranteed to exist at this point
+        toast.success(`Welcome back, ${userData.name}!`);
+        
+        return { 
+          success: true, 
+          user: userData 
+        };
       } else {
         throw new Error(response.message || 'Login failed');
       }
     } catch (error) {
       toast.error(error.message || 'Login failed');
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        message: error.message || 'Login failed',
+        error: error.message 
+      };
     }
   };
 

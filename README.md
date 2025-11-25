@@ -1,4 +1,4 @@
-# FitTrack - Frontend
+# FitTrack - FullStack
 
 ## Team Information
 

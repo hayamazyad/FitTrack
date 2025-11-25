@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, refreshUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -123,8 +123,21 @@ export default function Profile() {
           localStorage.removeItem('auth_token');
           navigate('/login');
         } else {
-          // Reload the page to refresh user data in context
-          window.location.reload();
+          // Refresh user data in context and reload form data
+          await refreshUser();
+          
+          // Reload form data with updated user info
+          const updatedResponse = await authAPI.getMe();
+          if (updatedResponse.success && updatedResponse.data?.user) {
+            const userData = updatedResponse.data.user;
+            setFormData({
+              name: userData.name || '',
+              email: userData.email || '',
+              password: '',
+              confirmPassword: '',
+              goals: userData.goals || '',
+            });
+          }
         }
       } else {
         throw new Error(response.message || 'Failed to update profile');
@@ -174,7 +187,7 @@ export default function Profile() {
             <CardDescription>Update your personal details and preferences</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               {/* Name */}
               <div>
                 <Label htmlFor="name" className="flex items-center gap-2">

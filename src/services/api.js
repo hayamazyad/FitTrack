@@ -72,6 +72,14 @@ export const authAPI = {
     });
   },
 
+  resetPassword: async (email, password, confirmPassword) => {
+    return apiRequest('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, confirmPassword }),
+      requireAuth: false,
+    });
+  },
+
   getMe: async () => {
     return apiRequest('/auth/me');
   },

@@ -1,4 +1,4 @@
-// Default exercise controller - CRUD endpoints for admin managed templates
+// RAMA
 const DefaultExercise = require('../models/DefaultExercise');
 const DefaultWorkout = require('../models/DefaultWorkout');
 

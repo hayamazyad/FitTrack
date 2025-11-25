@@ -1,7 +1,54 @@
 // Workout controller - handles CRUD operations for workouts
 const Workout = require('../models/Workout');
 const Exercise = require('../models/Exercise');
+const DefaultExercise = require('../models/DefaultExercise');
 const DefaultWorkout = require('../models/DefaultWorkout');
+
+// Helper function to validate exercises exist in either Exercise or DefaultExercise collections
+const validateExercises = async (exerciseIds) => {
+  if (!exerciseIds || exerciseIds.length === 0) {
+    return true;
+  }
+
+  const [userExercises, defaultExercises] = await Promise.all([
+    Exercise.find({ _id: { $in: exerciseIds } }).select('_id').lean(),
+    DefaultExercise.find({ _id: { $in: exerciseIds } }).select('_id').lean(),
+  ]);
+
+  const foundIds = new Set([
+    ...userExercises.map(ex => ex._id.toString()),
+    ...defaultExercises.map(ex => ex._id.toString()),
+  ]);
+
+  const missingIds = exerciseIds.filter(id => !foundIds.has(id.toString()));
+  return missingIds.length === 0;
+};
+
+// Helper function to populate exercises from both Exercise and DefaultExercise collections
+const populateExercises = async (exerciseIds) => {
+  if (!exerciseIds || exerciseIds.length === 0) {
+    return [];
+  }
+
+  const [userExercises, defaultExercises] = await Promise.all([
+    Exercise.find({ _id: { $in: exerciseIds } })
+      .select('name category difficulty description targetMuscles equipment instructions sets reps duration caloriesBurned')
+      .lean(),
+    DefaultExercise.find({ _id: { $in: exerciseIds } })
+      .select('name category difficulty description targetMuscles equipment instructions sets reps duration caloriesBurned')
+      .lean(),
+  ]);
+
+  // Create maps for quick lookup
+  const userExerciseMap = new Map(userExercises.map(ex => [ex._id.toString(), { ...ex, isDefault: false }]));
+  const defaultExerciseMap = new Map(defaultExercises.map(ex => [ex._id.toString(), { ...ex, isDefault: true }]));
+
+  // Return exercises in the same order as exerciseIds, with isDefault flag
+  return exerciseIds.map(id => {
+    const idStr = id.toString();
+    return userExerciseMap.get(idStr) || defaultExerciseMap.get(idStr) || null;
+  }).filter(Boolean);
+};
 
 // @desc    Get all workouts (user's own workouts if authenticated, empty if not)
 // @route   GET /api/workouts
@@ -12,9 +59,8 @@ const getWorkouts = async (req, res) => {
     // If not authenticated, return empty array
     const query = req.user ? { createdBy: req.user.id } : { _id: { $exists: false } }; // Return nothing if not authenticated
     
-    const [userWorkouts, defaultWorkouts] = await Promise.all([
+    const [userWorkoutsRaw, defaultWorkouts] = await Promise.all([
       Workout.find(query)
-        .populate('exercises', 'name category difficulty description targetMuscles equipment instructions')
         .populate('createdBy', 'name email')
         .sort({ createdAt: -1 })
         .lean(),
@@ -23,6 +69,17 @@ const getWorkouts = async (req, res) => {
         .sort({ createdAt: -1 })
         .lean({ virtuals: true }),
     ]);
+
+    // Populate exercises for user workouts from both collections
+    const userWorkouts = await Promise.all(
+      userWorkoutsRaw.map(async (workout) => {
+        const exercises = await populateExercises(workout.exercises || []);
+        return {
+          ...workout,
+          exercises,
+        };
+      })
+    );
 
     const data = [
       ...defaultWorkouts.map((workout) => ({
@@ -59,8 +116,8 @@ const getWorkouts = async (req, res) => {
 const getWorkout = async (req, res) => {
   try {
     const workout = await Workout.findById(req.params.id)
-      .populate('exercises')
-      .populate('createdBy', 'name email');
+      .populate('createdBy', 'name email')
+      .lean();
 
     if (!workout) {
       const defaultWorkout = await DefaultWorkout.findById(req.params.id).populate('exercises');
@@ -85,10 +142,14 @@ const getWorkout = async (req, res) => {
       });
     }
 
+    // Populate exercises from both collections
+    const exercises = await populateExercises(workout.exercises || []);
+
     res.status(200).json({
       success: true,
       data: {
-        ...workout.toObject(),
+        ...workout,
+        exercises,
         isDefault: false,
       },
     });
@@ -120,10 +181,10 @@ const createWorkout = async (req, res) => {
     const workoutCategory = category || 'strength';
     const workoutDifficulty = difficulty || 'intermediate';
 
-    // Validate exercises exist if provided
+    // Validate exercises exist in either Exercise or DefaultExercise collections
     if (exercises && exercises.length > 0) {
-      const exerciseDocs = await Exercise.find({ _id: { $in: exercises } });
-      if (exerciseDocs.length !== exercises.length) {
+      const isValid = await validateExercises(exercises);
+      if (!isValid) {
         return res.status(400).json({
           success: false,
           message: 'One or more exercises not found',
@@ -143,15 +204,24 @@ const createWorkout = async (req, res) => {
       createdBy: req.user.id,
     });
 
-    const populatedWorkout = await Workout.findById(workout._id)
-      .populate('exercises', 'name category difficulty description targetMuscles equipment instructions')
-      .populate('createdBy', 'name email');
+    // Populate exercises from both collections
+    const populatedExercises = await populateExercises(workout.exercises || []);
+
+    // Get workout with populated createdBy
+    const workoutWithCreator = await Workout.findById(workout._id)
+      .populate('createdBy', 'name email')
+      .lean();
+
+    const populatedWorkout = {
+      ...workoutWithCreator,
+      exercises: populatedExercises,
+    };
 
     res.status(201).json({
       success: true,
       message: 'Workout created successfully',
       data: {
-        ...populatedWorkout.toObject(),
+        ...populatedWorkout,
         isDefault: false,
       },
     });
@@ -185,10 +255,10 @@ const updateWorkout = async (req, res) => {
       });
     }
 
-    // Validate exercises if provided
+    // Validate exercises exist in either Exercise or DefaultExercise collections
     if (req.body.exercises && req.body.exercises.length > 0) {
-      const exerciseDocs = await Exercise.find({ _id: { $in: req.body.exercises } });
-      if (exerciseDocs.length !== req.body.exercises.length) {
+      const isValid = await validateExercises(req.body.exercises);
+      if (!isValid) {
         return res.status(400).json({
           success: false,
           message: 'One or more exercises not found',
@@ -200,14 +270,22 @@ const updateWorkout = async (req, res) => {
       new: true,
       runValidators: true,
     })
-      .populate('exercises')
-      .populate('createdBy', 'name email');
+      .populate('createdBy', 'name email')
+      .lean();
+
+    // Populate exercises from both collections
+    const populatedExercises = await populateExercises(workout.exercises || []);
+    
+    workout = {
+      ...workout,
+      exercises: populatedExercises,
+    };
 
     res.status(200).json({
       success: true,
       message: 'Workout updated successfully',
       data: {
-        ...workout.toObject(),
+        ...workout,
         isDefault: false,
       },
     });
@@ -263,4 +341,3 @@ module.exports = {
   updateWorkout,
   deleteWorkout,
 };
-

@@ -1,4 +1,4 @@
-// DefaultExercise model - admin managed templates that every user can see
+//RAMA
 const mongoose = require('mongoose');
 
 const defaultExerciseSchema = new mongoose.Schema(

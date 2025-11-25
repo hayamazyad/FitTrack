@@ -30,9 +30,16 @@ export const ExerciseCard = ({ exercise, onClick }) => {
 
   const rightStats = (() => {
     const parts = [];
-    if (exercise.sets && exercise.reps) parts.push(`${exercise.sets}×${exercise.reps}`);
-    if (typeof exercise.duration === 'number') parts.push(`${exercise.duration} min`);
-    if (typeof exercise.caloriesBurned === 'number') parts.push(`~${exercise.caloriesBurned} cal`);
+    // Only show sets/reps if both exist and are greater than 0
+    if (exercise.sets > 0 && exercise.reps > 0) {
+      parts.push(`${exercise.sets}×${exercise.reps}`);
+    }
+    if (typeof exercise.duration === 'number' && exercise.duration > 0) {
+      parts.push(`${exercise.duration} min`);
+    }
+    if (typeof exercise.caloriesBurned === 'number' && exercise.caloriesBurned > 0) {
+      parts.push(`~${exercise.caloriesBurned} cal`);
+    }
     return parts.join(' • ');
   })();
 

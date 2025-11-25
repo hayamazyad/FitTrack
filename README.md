@@ -46,7 +46,128 @@ The application currently simulates a backend using mock data for the following 
 
 We used the online database pf MongoDB: mongodb+srv://fittrack:FITTRACK@cluster0.nhjzihv.mongodb.net/?appName=Cluster0
 
-you can find the schema used and the data to create the tables and insert data.
+## Database Schema
+
+Below is an overview of the main collections (tables) used in the MongoDB database.
+
+---
+
+### 1. User
+
+Represents each registered user in the application.
+
+| Field       | Type     | Description                          |
+|------------|----------|--------------------------------------|
+| `_id`      | ObjectId | Unique user identifier               |
+| `name`     | String   | User’s full name                     |
+| `email`    | String   | User email (unique)                  |
+| `password` | String   | Hashed user password                 |
+| `goals`    | String   | Optional personal fitness goals      |
+| `createdAt`| Date     | Automatically added creation time    |
+| `updatedAt`| Date     | Automatically added update time      |
+
+---
+
+### 2. Workout
+
+Represents **user-created workouts** that group multiple exercises.
+
+| Field           | Type       | Description                                                   |
+|----------------|------------|---------------------------------------------------------------|
+| `_id`          | ObjectId   | Unique workout identifier                                     |
+| `name`         | String     | Workout name                                                  |
+| `category`     | String     | One of: `strength`, `cardio`, `flexibility`, `sports`        |
+| `difficulty`   | String     | One of: `beginner`, `intermediate`, `advanced`               |
+| `description`  | String     | Short description of the workout                             |
+| `duration`     | Number     | Total duration in minutes                                    |
+| `caloriesBurned` | Number   | Estimated calories burned                                    |
+| `exercises`    | [ObjectId] | Array of exercise IDs included in this workout               |
+| `createdBy`    | ObjectId   | ID of the user who created the workout (`ref: User`)         |
+| `createdAt`    | Date       | Automatically added creation time                            |
+| `updatedAt`    | Date       | Automatically added update time                              |
+
+---
+
+### 3. Exercise
+
+Represents **user-created exercises**.
+
+| Field           | Type       | Description                                    |
+|----------------|------------|------------------------------------------------|
+| `_id`          | ObjectId   | Unique exercise identifier                     |
+| `name`         | String     | Exercise name                                  |
+| `muscle_group` | String     | Main muscle group targeted                    |
+| `description`  | String     | Description / how to perform the exercise     |
+| `sets`         | Number     | Recommended sets                               |
+| `reps`         | Number     | Recommended reps                               |
+| `duration`     | Number     | Duration in minutes (if applicable)           |
+| `caloriesBurned` | Number   | Estimated calories burned                     |
+| `createdBy`    | ObjectId   | ID of the user who created the exercise (`ref: User`) |
+| `createdAt`    | Date       | Automatically added creation time             |
+| `updatedAt`    | Date       | Automatically added update time               |
+
+---
+
+### 4. ProgressLog
+
+Represents **logged workout sessions** for each user.
+
+| Field           | Type       | Description                                     |
+|----------------|------------|-------------------------------------------------|
+| `_id`          | ObjectId   | Unique progress log identifier                  |
+| `userId`       | ObjectId   | ID of the user (`ref: User`)                    |
+| `workoutId`    | ObjectId   | ID of the workout performed (`ref: Workout`)    |
+| `duration`     | Number     | Actual duration in minutes                      |
+| `caloriesBurned` | Number   | Actual calories burned (estimated)              |
+| `notes`        | String     | Optional notes about the session                |
+| `createdAt`    | Date       | Automatically added creation time               |
+| `updatedAt`    | Date       | Automatically added update time                 |
+
+---
+
+### 5. DefaultExercise
+
+Represents **admin-created default exercises** that are visible to all users.
+
+| Field           | Type       | Description                                                   |
+|----------------|------------|---------------------------------------------------------------|
+| `_id`          | ObjectId   | Unique default exercise identifier                            |
+| `name`         | String     | Exercise name                                                 |
+| `category`     | String     | One of: `strength`, `cardio`, `flexibility`, `sports`        |
+| `difficulty`   | String     | One of: `beginner`, `intermediate`, `advanced`               |
+| `description`  | String     | Description of the exercise                                  |
+| `targetMuscles`| [String]   | List of target muscles                                       |
+| `equipment`    | [String]   | List of required equipment (if any)                          |
+| `instructions` | [String]   | Step-by-step instructions                                    |
+| `sets`         | Number     | Recommended sets                                             |
+| `reps`         | Number     | Recommended reps                                             |
+| `duration`     | Number     | Duration in minutes (if applicable)                          |
+| `caloriesBurned` | Number   | Estimated calories burned                                    |
+| `createdBy`    | ObjectId   | ID of the admin who created it (`ref: User`)                 |
+| `createdAt`    | Date       | Automatically added creation time                            |
+| `updatedAt`    | Date       | Automatically added update time                              |
+
+---
+
+### 6. DefaultWorkout
+
+Represents **admin-created default workouts** that are visible to all users.
+
+| Field           | Type       | Description                                                   |
+|----------------|------------|---------------------------------------------------------------|
+| `_id`          | ObjectId   | Unique default workout identifier                             |
+| `name`         | String     | Workout name                                                  |
+| `category`     | String     | One of: `strength`, `cardio`, `flexibility`, `sports`        |
+| `difficulty`   | String     | One of: `beginner`, `intermediate`, `advanced`               |
+| `description`  | String     | Description of the workout                                   |
+| `duration`     | Number     | Total duration in minutes                                    |
+| `caloriesBurned` | Number   | Estimated calories burned                                    |
+| `exercises`    | [ObjectId] | Array of default exercise IDs included in this workout       |
+| `createdBy`    | ObjectId   | ID of the admin who created it (`ref: User`)                 |
+| `createdAt`    | Date       | Automatically added creation time                            |
+| `updatedAt`    | Date       | Automatically added update time                              |
+
+
 
 ---
 

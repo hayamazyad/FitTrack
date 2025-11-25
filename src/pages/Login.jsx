@@ -56,14 +56,12 @@ export default function Login() {
         const result = await login(formData.email, formData.password);
         setLoading(false);
         if (result.success) {
-            toast.success(`Welcome back, ${result.user?.name || 'User'}!`);
+            // Navigation only - toast with user's name is handled by AuthContext
             setTimeout(() => {
                 navigate('/dashboard');
             }, 1000);
         }
-        else {
-            toast.error(result.message || 'Invalid email or password');
-        }
+        // Error handling and toast are both handled by AuthContext
     };
     const handleInputChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));

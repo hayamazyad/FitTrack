@@ -336,26 +336,25 @@ export default function ExerciseDetails() {
       <div className="flex flex-wrap items-center gap-8">
         {/* Duration */}
         {exercise.duration > 0 && (
-        <div className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-muted-foreground" />
-       <div>
-        <p className="text-sm text-muted-foreground">Duration</p>
-        <p className="font-semibold">{exercise.duration} minutes</p>
-      </div>
-  </div>
-)}
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-muted-foreground">Duration</p>
+              <p className="font-semibold">{exercise.duration} minutes</p>
+            </div>
+          </div>
+        )}
 
-
-{/* Calories */}
-{exercise.caloriesBurned > 0 && (
-  <div className="flex items-center gap-2">
-    <Flame className="h-5 w-5 text-muted-foreground" />
-    <div>
-      <p className="text-sm text-muted-foreground">Calories</p>
-      <p className="font-semibold">{exercise.caloriesBurned} kcal</p>
-    </div>
-  </div>
-)}
+        {/* Calories */}
+        {exercise.caloriesBurned && (
+          <div className="flex items-center gap-2">
+            <Flame className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-muted-foreground">Calories</p>
+              <p className="font-semibold">{exercise.caloriesBurned} kcal</p>
+            </div>
+          </div>
+        )}
 
         {/* Difficulty */}
         <div className="flex items-center gap-2">
@@ -386,8 +385,8 @@ export default function ExerciseDetails() {
         </div>
       </div>
 
-      {/* Sets × reps chip (kept below stats row) */}
-      {exercise.sets && exercise.reps && (
+      {/* Sets × reps chip (kept below stats row) - only show if both are > 0 */}
+      {exercise.sets > 0 && exercise.reps > 0 && (
         <Badge variant="outline" className="rounded-full">
           {exercise.sets} sets × {exercise.reps} reps
         </Badge>

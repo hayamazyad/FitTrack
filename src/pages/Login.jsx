@@ -7,17 +7,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dumbbell, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { authAPI } from '@/services/api';
 
 export default function Login() {
     const navigate = useNavigate();
     const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
+    const [showResetPassword, setShowResetPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [resetLoading, setResetLoading] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
         password: '',
     });
+    const [resetFormData, setResetFormData] = useState({
+        newPassword: '',
+        confirmPassword: '',
+    });
     const [errors, setErrors] = useState({});
+    const [resetErrors, setResetErrors] = useState({});
     const validateForm = () => {
         const newErrors = {};
         // Email validation
@@ -64,6 +72,67 @@ export default function Login() {
             setErrors((prev) => ({ ...prev, [field]: '' }));
         }
     };
+
+    const handleResetInputChange = (field, value) => {
+        setResetFormData((prev) => ({ ...prev, [field]: value }));
+        // Clear error when user starts typing
+        if (resetErrors[field]) {
+            setResetErrors((prev) => ({ ...prev, [field]: '' }));
+        }
+    };
+
+    const validateResetForm = () => {
+        const newErrors = {};
+        
+        if (!resetFormData.newPassword) {
+            newErrors.newPassword = 'New password is required';
+        } else if (resetFormData.newPassword.length < 8) {
+            newErrors.newPassword = 'Password must be at least 8 characters';
+        }
+
+        if (!resetFormData.confirmPassword) {
+            newErrors.confirmPassword = 'Please confirm your password';
+        } else if (resetFormData.newPassword !== resetFormData.confirmPassword) {
+            newErrors.confirmPassword = 'Passwords do not match';
+        }
+
+        setResetErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        
+        if (!formData.email) {
+            toast.error('Please enter your email address first');
+            return;
+        }
+
+        if (!validateResetForm()) {
+            toast.error('Please fix the errors in the form');
+            return;
+        }
+
+        setResetLoading(true);
+        try {
+            const result = await authAPI.resetPassword(
+                formData.email,
+                resetFormData.newPassword,
+                resetFormData.confirmPassword
+            );
+            
+            if (result.success) {
+                toast.success('Password reset successfully! You can now login with your new password.');
+                setShowResetPassword(false);
+                setResetFormData({ newPassword: '', confirmPassword: '' });
+                setResetErrors({});
+            }
+        } catch (error) {
+            toast.error(error.message || 'Failed to reset password. Please try again.');
+        } finally {
+            setResetLoading(false);
+        }
+    };
     return (<div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-br from-primary/10 via-background to-primary/5">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center space-y-4">
@@ -90,7 +159,21 @@ export default function Login() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <button type="button" className="text-xs text-primary hover:underline" onClick={() => toast.info('Password reset feature coming soon!')}>
+                <button 
+                  type="button" 
+                  className="text-xs text-primary hover:underline" 
+                  onClick={() => {
+                    if (!formData.email) {
+                      toast.error('Please enter your email address first');
+                      return;
+                    }
+                    setShowResetPassword(!showResetPassword);
+                    if (showResetPassword) {
+                      setResetFormData({ newPassword: '', confirmPassword: '' });
+                      setResetErrors({});
+                    }
+                  }}
+                >
                   Forgot password?
                 </button>
               </div>
@@ -103,28 +186,103 @@ export default function Login() {
               {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
             </div>
 
-            {/* Submit Button */}
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
+            {/* Submit Button - hide when reset password form is shown */}
+            {!showResetPassword && (
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign In'}
+              </Button>
+            )}
           </form>
 
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t"/>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
+          {/* Reset Password Form - appears directly under password field, replaces Demo Credentials */}
+          {showResetPassword && (
+            <div className="bg-muted/50 rounded-lg p-4 space-y-4 animate-[fadeIn_0.3s_ease-in-out] mt-4">
+              <div>
+                <h3 className="text-sm font-semibold mb-1">Reset Password</h3>
+                <p className="text-xs text-muted-foreground">
+                  Enter your new password for <span className="font-medium">{formData.email}</span>
+                </p>
+              </div>
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                {/* New Password Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input 
+                    id="newPassword" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={resetFormData.newPassword} 
+                    onChange={(e) => handleResetInputChange('newPassword', e.target.value)}
+                    className={resetErrors.newPassword ? 'border-destructive' : ''}
+                  />
+                  {resetErrors.newPassword && (
+                    <p className="text-sm text-destructive">{resetErrors.newPassword}</p>
+                  )}
+                </div>
 
-          {/* Demo Credentials */}
-          <div className="bg-muted/50 rounded-lg p-4 mb-4">
-            <p className="text-xs font-semibold mb-2">Demo Credentials:</p>
-            <p className="text-xs text-muted-foreground">Email: john@example.com</p>
-            <p className="text-xs text-muted-foreground">Password: password123</p>
-          </div>
+                {/* Confirm Password Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input 
+                    id="confirmPassword" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={resetFormData.confirmPassword} 
+                    onChange={(e) => handleResetInputChange('confirmPassword', e.target.value)}
+                    className={resetErrors.confirmPassword ? 'border-destructive' : ''}
+                  />
+                  {resetErrors.confirmPassword && (
+                    <p className="text-sm text-destructive">{resetErrors.confirmPassword}</p>
+                  )}
+                </div>
+
+                {/* Buttons */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setShowResetPassword(false);
+                      setResetFormData({ newPassword: '', confirmPassword: '' });
+                      setResetErrors({});
+                    }}
+                    disabled={resetLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="flex-1" 
+                    disabled={resetLoading}
+                  >
+                    {resetLoading ? 'Resetting...' : 'Reset Password'}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Divider - only show when not in reset password mode */}
+          {!showResetPassword && (
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t"/>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or</span>
+              </div>
+            </div>
+          )}
+
+          {/* Demo Credentials - only show when not in reset password mode */}
+          {!showResetPassword && (
+            <div className="bg-muted/50 rounded-lg p-4 mb-4">
+              <p className="text-xs font-semibold mb-2">Demo Credentials:</p>
+              <p className="text-xs text-muted-foreground">Email: john@example.com</p>
+              <p className="text-xs text-muted-foreground">Password: password123</p>
+            </div>
+          )}
 
           {/* Sign Up Link */}
           <div className="text-center text-sm">

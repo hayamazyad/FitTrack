@@ -1,4 +1,4 @@
-// Authentication controller - handles user registration and login
+//RAMA
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 

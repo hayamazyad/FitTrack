@@ -100,6 +100,13 @@ export const AuthProvider = ({ children }) => {
     toast.info('Logged out successfully');
   };
 
+  const refreshUser = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      await loadUserProfile();
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -108,6 +115,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

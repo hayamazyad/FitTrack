@@ -1,4 +1,4 @@
-//RAMA
+// Authentication controller - handles user registration and login
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
@@ -158,6 +158,63 @@ const getMe = async (req, res) => {
   }
 };
 
+// @desc    Reset user password
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res) => {
+  try {
+    const { email, password, confirmPassword } = req.body;
+
+    // Validation
+    if (!email || !password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email, password, and confirm password',
+      });
+    }
+
+    // Validate password length
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters',
+      });
+    }
+
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match',
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found with this email',
+      });
+    }
+
+    // Update password (will be hashed by pre-save hook)
+    user.password = password;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error resetting password',
+    });
+  }
+};
+
 // @desc    Update user profile
 // @route   PUT /api/auth/profile
 // @access  Private (owner only - user can only update their own profile)
@@ -257,6 +314,7 @@ module.exports = {
   register,
   login,
   getMe,
+  resetPassword,
   updateProfile,
 };
 

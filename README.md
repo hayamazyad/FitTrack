@@ -29,7 +29,11 @@ You can check the GIF for a project overview.
 
 ## Live Demo
 
-**Link to the deployed application (Frontend):** [https://fittrack1-cnnv.onrender.com/](https://fittrack1-cnnv.onrender.com/)
+**Links to the deployed application:** 
+
+Frontend: [https://fittrack1-cnnv.onrender.com/](https://fittrack1-cnnv.onrender.com/)
+
+Backend: [https://fittrack-1-hqcb.onrender.com/](https://fittrack-1-hqcb.onrender.com)
 
 ---
 
@@ -41,8 +45,8 @@ The application currently simulates a backend using mock data for the following 
 * Exercises
 * Workouts
 * Progress Logs
-* Default ecercises
-* Defualt workouts
+* Default exercises
+* Default workouts
 
 We used the online database pf MongoDB: mongodb+srv://fittrack:FITTRACK@cluster0.nhjzihv.mongodb.net/?appName=Cluster0
 
@@ -255,26 +259,20 @@ Each member was responsible for specific implementation as follows:
 ### Rama Alassi
 
 * controllers:
-  AuthController
-  DefualtExerciseController
+  AuthController & DefaultExerciseController
 * model:
-  User
-  DefualtExercise
+  User & DefaultExercise
 * routes:
-  AuthRoute
-  DefualtExerciseRoute
+  AuthRoute & DefaultExerciseRoute
 
 ### Haya Mazyad
 
 * controllers:
-  workoutController
-  DefualtWorkoutController
+  workoutController & DefaultWorkoutController
 * model:
-  Workout
-  DefualtWorkout
+  Workout & DefaultWorkout
 * routes:
-  workRoute
-  DefualtWorkoutRoute
+  workRoute & DefaultWorkoutRoute
 
 ### Lynn Oueidat
 
